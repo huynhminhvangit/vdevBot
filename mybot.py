@@ -1,6 +1,14 @@
 import speech_recognition
 import pyttsx3
-from datetime import date, datetime
+import openai
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+MY_API_KEY = os.getenv("api_key")
+openai.api_key = MY_API_KEY
+
 
 robot_ear = speech_recognition.Recognizer()
 # Loop
@@ -9,24 +17,26 @@ while True:
         print("Robot: I'm Listening")
         audio = robot_ear.listen(mic)
     try:
-        you = robot_ear.recognize_google(audio)
+        you = robot_ear.recognize_google(audio, language="vi-VN")
     except:
         you = ""
 
     if you == "":
-        robot_brain = "I can't hear you, try again"
-    elif "hello" in you:
-        robot_brain = "Hello Vang"
-    elif "today" in you:
-        today = date.today()
-        now = datetime.now()
-        robot_brain = today.strftime("Now is %B %d, %Y") + now.strftime(" %H hours %M minutes %S seconds")
-    elif "bye" in you:
-        robot_brain = "Goodbye, Vang"
-        break
+        robot_brain = "Tôi không hiểu bạn nói gì, vui lòng nói lại"
     else:
-        robot_brain = "You are very handsome"
+        model_engine = "gpt-3.5-turbo"
+        print(you)
+        prompt = you
 
+        completion = openai.ChatCompletion.create(
+            model=model_engine,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2
+        )
+
+        robot_brain = completion.choices[0].message.content
 
     # log robot_brain
     print(robot_brain)
